@@ -1,0 +1,96 @@
+#!/usr/bin/env bash
+
+
+
+
+set -euo pipefail
+trap 'echo  "CTRL-C Pressed, exiting.."; exit 1'  SIGINT
+
+# RED='\033[0;31m'
+# GREEN='\033[0;32m'
+# NC='\033[0m'
+
+
+
+
+# (Func) of logs
+
+log() {
+
+ local indx="$1"
+  printf "\n ================================================================== "
+  printf "\n                                                                    "
+  printf "\n $indx                                                            \n" | tee -a ERROR.log   
+  printf "                                                                      "
+  printf "\n ================================================================== \n "
+
+}
+
+
+
+    
+               
+
+               
+      # Checking for requirements.
+
+  
+               command -v node >/dev/null 2>&1 || { log "[!] Node.js is not installed"; exit 1; }
+               command -v npm >/dev/null 2>&1 || { log "[!] npm is not installed"; exit 1; }
+               [[ ! -f package-lock.json ]] && { log "[!] WARNING: package-lock.json not found, exiting.."; exit 1; }
+  
+
+
+
+
+
+                 #Installing Dependencies
+
+
+                if npm run | grep -q "build"; then
+                       echo "[+] Build found in test output, installing it.."
+                             
+                                npm ci || {
+                              
+                              log "[!] ERROR: Command <npm-ci> failed, exiting.."
+                                  exit 1
+                               }
+                     
+                     else
+                       echo  "[+] Build not found. Running npm install..."    
+                           
+                              npm install || {
+                              
+                            log "[!] ERROR: Command <npm-install> failed, exiting.."
+                                exit 1
+                          }
+              fi
+
+          
+
+               
+
+             # Checking for syntax errors/Bugs in the code.
+
+                                if ! npm run lint;  then
+                                        
+                                     log "[!] WARNING: Errors found! exiting.."
+                                              exit 1
+                     else
+                                    echo "[*] No errors spotted from lint"
+                                fi
+
+
+         
+
+                       # Building and Deploying the project. 
+                       
+                        printf "[+] Building it..\n"; npm run build 2>&1 || { log "[!] ERROR: Command <npm-run-build> failed, exiting.."; exit 1; } 
+                        printf "[+] Deploying it..\n"; npm run deploy 2>&1 || { log "[!] ERROR: Command <npm-run-deploy> failed, exiting.."; exit 1; }
+
+                          
+
+
+
+
+
